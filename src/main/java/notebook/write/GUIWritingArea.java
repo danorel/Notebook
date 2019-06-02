@@ -10,13 +10,7 @@ import javax.swing.text.StyledDocument;
 import java.awt.*;
 
 public class GUIWritingArea extends JTextPane {
-    /*
-        Content of the file. It consists of:
-            - title
-            - page content
-     */
-    private StringBuilder html;
-    private StringBuilder body;
+
     /*
             Content of the file is saved in the object of Document class
     */
@@ -27,20 +21,6 @@ public class GUIWritingArea extends JTextPane {
     private SimpleAttributeSet attributes;
 
     public GUIWritingArea(){
-        html = new StringBuilder(
-                "<html>"+
-                    "<head>"+
-                        "<title>"+
-                        "</title>"+
-                    "</head>"+
-                    "<body>"+
-                        "<h3 id=\"title\">"+
-                        "</h3>"+
-                        "<p id=\"text\">"+
-                        "</p>"+
-                    "</body>"+
-                "</html>"
-        );
         document = this.getStyledDocument();
         attributes = new SimpleAttributeSet();
     }
