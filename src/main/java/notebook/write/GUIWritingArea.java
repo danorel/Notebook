@@ -1,5 +1,6 @@
 package notebook.write;
 
+import notebook.Preferences;
 import org.jsoup.nodes.Document;
 
 import javax.swing.*;
@@ -21,6 +22,14 @@ public class GUIWritingArea extends JTextPane {
     private SimpleAttributeSet attributes;
 
     public GUIWritingArea(){
+        this.setPreferredSize(
+                new Dimension(
+                        Preferences.AREA_WIDTH,
+                        Preferences.AREA_HEIGHT
+                )
+        );
+        this.setContentType("text/html");
+        this.setEditable(true);
         document = this.getStyledDocument();
         attributes = new SimpleAttributeSet();
     }
