@@ -1,22 +1,18 @@
 package notebook;
 
-import file.FileManager;
 import notebook.menu.GUIMenubar;
 import notebook.pane.GUIPaneGenerator;
 import notebook.tools.GUIToolPanel;
 import notebook.write.GUIWritingArea;
 
 import javax.swing.*;
-import javax.swing.text.*;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.StyledDocument;
+import javax.swing.text.StyledEditorKit;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Objects;
 
 public class Notebook extends JFrame {
 
@@ -24,7 +20,7 @@ public class Notebook extends JFrame {
 
     private JPanel south, center;
     private ArrayList<GUIWritingArea> areas;
-    private ArrayList<JScrollPane> scrollPanes;
+    private ArrayList<JScrollPane> panes;
 
     public Notebook(String title) {
         setTitle(title);
@@ -43,47 +39,7 @@ public class Notebook extends JFrame {
         south       = new JPanel();
         center      = new JPanel();
         areas       = new ArrayList<>();
-        scrollPanes = new ArrayList<>();
-    }
-
-    private void initListeners(){
-        addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent event) {
-                switch (Preferences.ACTION_TYPE){
-                    case 0:
-
-                        break;
-                    case 1:
-
-                        break;
-                    case 2:
-
-                        break;
-                    case 3:
-
-                        break;
-                    case 4:
-
-                        break;
-                    case 5:
-
-                        break;
-                    case 6:
-
-                        break;
-                    case 7:
-
-                        break;
-                    case 8:
-
-                        break;
-                    case 9:
-
-                        break;
-                }
-            }
-        });
+        panes = new ArrayList<>();
     }
 
     public void display() {
@@ -124,18 +80,7 @@ public class Notebook extends JFrame {
 
         builder.getMenuItem("Preferences")
                 .addActionListener(event -> {
-                    JFrame innerJFrame = new JFrame("Preferences");
-                    innerJFrame.setSize(Preferences.WIDTH / 4 * 3, Preferences.HEIGHT / 4 * 3);
-                    JPanel innerJPanel = new JPanel();
-                    GUIPaneGenerator paneGenerator = new GUIPaneGenerator();
-                    paneGenerator
-                            .addTab("Font Color", new JTextArea(15, 20))
-                            .addTab("Font Size", new JTextArea(15, 20))
-                            .addTab("BGR Color", new JTextArea(15, 20))
-                            .generate();
-                    innerJPanel.add(paneGenerator.getTabs(), BorderLayout.CENTER);
-                    innerJFrame.add(innerJPanel, BorderLayout.CENTER);
-                    innerJFrame.setVisible(true);
+                   // Some functions will be here...
                 });
 
         builder.
@@ -149,16 +94,11 @@ public class Notebook extends JFrame {
                     if (fileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
                         File file = fileChooser.getSelectedFile();
                         try {
-                            BufferedReader reader = new BufferedReader(new FileReader(file.getPath()));
-                            String line;
-                            StringBuilder content = new StringBuilder();
-                            while ((line = reader.readLine()) != null) {
-                                content.append(line).append("\n");
-                            }
+                            FileReader reader = new FileReader(file.getPath());
                             GUIWritingArea area = new GUIWritingArea();
-                            area.makeContent(content.toString());
-                            area.setBackground(area.getBackground());
-                            tabs.add("Note", area);
+                            area.read(reader, file.getPath());
+
+                            tabs.add(file.getName().split("[.]")[0], area);
                             reader.close();
                         } catch (IOException exception) {
                             exception.printStackTrace();
@@ -174,58 +114,103 @@ public class Notebook extends JFrame {
                     scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
 
                     areas.add(writing);
-                    scrollPanes.add(scrollPane);
+                    panes.add(scrollPane);
                     tabs.add(scrollPane);
 
                     writing.requestFocusInWindow();
                     tabs.setSelectedIndex(tabs.getTabCount() - 1);
-                    String title = JOptionPane.showInputDialog(null, "Define the title for the note");
-                    tabs.setTitleAt(tabs.getSelectedIndex(), (title.substring(0, 1).toUpperCase() + title.substring(1).toLowerCase()));
+                    tabs.setTitleAt(
+                            tabs.getSelectedIndex(),
+                            JOptionPane.showInputDialog(
+                                    null,
+                                    "Define the title for the note"
+                            )
+                    );
                 });
         builder.getMenuItem("Delete")
                 .addActionListener(event -> {
-                    for (File file : Objects.requireNonNull(Database.getExistingNotes())) {
-                        String[] tokens = file.getName().split("[./]");
-                        if ((tokens[0].substring(0, 1).toUpperCase() + tokens[0].substring(1).toLowerCase()).equals(tabs.getTitleAt(tabs.getSelectedIndex()))) {
+                    if(tabs.getTabCount() == 0){
+                        JOptionPane.showMessageDialog(
+                                null,
+                                "Create the note.\nNone of the notes exists that is why this operation cannot be used."
+                        );
+                    } else {
+                        JFileChooser chooser = new JFileChooser();
+                        int option = chooser.showOpenDialog(null);
+                        if(option == JFileChooser.APPROVE_OPTION){
+                            File file = chooser.getSelectedFile();
+                            String filename = file.getName().split("[.]")[0];
                             file.delete();
-                            tabs.remove(tabs.getComponentAt(tabs.getSelectedIndex()));
-                            break;
+                            for(int index = 0; index < tabs.getTabCount(); index++){
+                                if(filename.equals(tabs.getTitleAt(index))){
+                                    tabs.remove(index);
+                                }
+                            }
                         }
                     }
                 });
         builder.getMenuItem("Edit")
                 .addActionListener(event -> {
-                    ( tabs.getComponentAt(tabs.getSelectedIndex())).setEnabled(true);
+                     tabs
+                             .getComponentAt(tabs.getSelectedIndex())
+                             .setEnabled(true);
                 });
         builder.getMenuItem("Rename")
                 .addActionListener(event -> {
-                    String title = JOptionPane.showInputDialog(null, "Define the title for the note");
-                    Objects.requireNonNull(Database.getExistingNotes())
-                            .forEach(file -> {
-                                String[] tokens = file.getName().split("[./]");
-                                if ((tokens[0].substring(0, 1).toUpperCase() + tokens[0].substring(1).toLowerCase()).equals(tabs.getTitleAt(tabs.getSelectedIndex()))) {
-                                    file = new File(Database.getPATH() + "/" + title);
-                                    try {
-                                        BufferedWriter writer = new BufferedWriter(new FileWriter(Database.getPATH() + "/" + title.toLowerCase()));
-                                        writer.write(((GUIWritingArea) tabs.getComponentAt(tabs.getSelectedIndex())).getText());
-                                        writer.close();
-                                    } catch (IOException exception) {
-                                        exception.printStackTrace();
-                                    }
-                                    tabs.setTitleAt(tabs.getSelectedIndex(), (title.substring(0, 1).toUpperCase() + title.substring(1).toLowerCase()));
-                                }
-                            });
+                    if(tabs.getTabCount() == 0){
+                        JOptionPane.showMessageDialog(
+                                null,
+                                "Create the note!\nNone of the notes exists that is why this operation cannot be used."
+                        );
+                    } else {
+                        String title = JOptionPane.showInputDialog(
+                                null,
+                                "Define the title for current note"
+                        );
+                        tabs.setTitleAt(
+                                tabs.getSelectedIndex(),
+                                (title)
+                        );
+                    }
                 });
         builder.getMenuItem("Save")
                 .addActionListener(event -> {
-                    JFileChooser chooser = new JFileChooser();
-                    int option = chooser.showSaveDialog(null);
-                    if (option == JFileChooser.APPROVE_OPTION) {
-                        File file = chooser.getSelectedFile();
-                        FileManager.createFile(file.getAbsolutePath());
-                        FileManager.write(file.getAbsolutePath(), (tabs.getComponentAt(tabs.getSelectedIndex()).toString()));
+                    if(tabs.getTabCount() == 0){
+                        JOptionPane.showMessageDialog(
+                                null,
+                                "Create the note!\nNone of the notes exists that is why this operation cannot be used."
+                        );
+                    } else {
+                        JFileChooser chooser = new JFileChooser();
+                        chooser.setDialogTitle("Save dialog");
+                        chooser
+                                .setSelectedFile(
+                                        new File(tabs.getTitleAt(tabs.getSelectedIndex()) + ".doc")
+                                );
+                        int option = chooser.showSaveDialog(null);
+                        if (option == JFileChooser.APPROVE_OPTION) {
+                            File file = chooser.getSelectedFile();
+                            BufferedOutputStream out = null;
+                            try {
+                                out = new BufferedOutputStream(new FileOutputStream(file));
+                            } catch (FileNotFoundException exception) {
+                                exception.printStackTrace();
+                            }
+                            StyledEditorKit kit = (StyledEditorKit)
+                                    areas.get(tabs.getSelectedIndex())
+                                            .getEditorKit();
+                            StyledDocument document = (StyledDocument) areas.get(tabs.getSelectedIndex()).getDocument();
+                            try {
+                                assert out != null;
+                                kit.write(out, document, 0, document.getLength());
+                            } catch (IOException | BadLocationException exception) {
+                                exception.printStackTrace();
+                            }
+                            tabs
+                                    .getComponentAt(tabs.getSelectedIndex())
+                                    .setEnabled(false);
+                        }
                     }
-
                 });
         return builder;
     }

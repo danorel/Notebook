@@ -72,7 +72,6 @@ public class GUIToolPanel extends JPanel {
         );
         subscript.setPreferredSize(Preferences.BUTTON_SIZE);
         this.add(subscript);
-        subscript.addActionListener(event -> Preferences.ACTION_TYPE = 0);
         return this;
     }
 
@@ -81,7 +80,6 @@ public class GUIToolPanel extends JPanel {
                 new ImageIcon(GUIToolPanelOptions.BOLD_TOOL_PATH));
         bold.setPreferredSize(Preferences.BUTTON_SIZE);
         this.add(bold);
-        bold.addActionListener(event -> Preferences.ACTION_TYPE = 1);
         return this;
     }
 
@@ -90,7 +88,6 @@ public class GUIToolPanel extends JPanel {
                 new ImageIcon(GUIToolPanelOptions.ITALIC_TOOL_PATH));
         italic.setPreferredSize(Preferences.BUTTON_SIZE);
         this.add(italic);
-        italic.addActionListener(event -> Preferences.ACTION_TYPE = 2);
         return this;
     }
 
@@ -99,7 +96,6 @@ public class GUIToolPanel extends JPanel {
                 new ImageIcon(GUIToolPanelOptions.UNDERLINE_TOOL_PATH));
         underline.setPreferredSize(Preferences.BUTTON_SIZE);
         this.add(underline);
-        underline.addActionListener(event -> Preferences.ACTION_TYPE = 3);
         return this;
     }
 
@@ -108,7 +104,6 @@ public class GUIToolPanel extends JPanel {
                 new ImageIcon(GUIToolPanelOptions.FONT_TOOL_PATH));
         font.setPreferredSize(Preferences.BUTTON_SIZE);
         this.add(font);
-        font.addActionListener(event -> Preferences.ACTION_TYPE = 4);
         return this;
     }
 
@@ -120,7 +115,6 @@ public class GUIToolPanel extends JPanel {
         );
         strikeThrough.setPreferredSize(Preferences.BUTTON_SIZE);
         this.add(strikeThrough);
-        strikeThrough.addActionListener(event -> Preferences.ACTION_TYPE = 5);
         return this;
     }
 
@@ -132,7 +126,6 @@ public class GUIToolPanel extends JPanel {
         );
         indent.setPreferredSize(Preferences.BUTTON_SIZE);
         this.add(indent);
-        indent.addActionListener(event -> Preferences.ACTION_TYPE = 6);
         return this;
     }
 
@@ -144,7 +137,6 @@ public class GUIToolPanel extends JPanel {
         );
         left.setPreferredSize(Preferences.BUTTON_SIZE);
         this.add(left);
-        left.addActionListener(event -> Preferences.ACTION_TYPE = 7);
         return this;
     }
 
@@ -153,7 +145,6 @@ public class GUIToolPanel extends JPanel {
                 new ImageIcon(GUIToolPanelOptions.CENTER_ALIGNMENT_PATH));
         center.setPreferredSize(Preferences.BUTTON_SIZE);
         this.add(center);
-        center.addActionListener(event -> Preferences.ACTION_TYPE = 8);
         return this;
     }
 
@@ -165,7 +156,6 @@ public class GUIToolPanel extends JPanel {
         );
         right.setPreferredSize(Preferences.BUTTON_SIZE);
         this.add(right);
-        right.addActionListener(event -> Preferences.ACTION_TYPE = 9);
         return this;
     }
 
@@ -174,7 +164,6 @@ public class GUIToolPanel extends JPanel {
                 new ImageIcon(GUIToolPanelOptions.LIST_TOOL_PATH));
         list.setPreferredSize(Preferences.BUTTON_SIZE);
         this.add(list);
-        list.addActionListener(event -> Preferences.ACTION_TYPE = 10);
         return this;
     }
 
@@ -186,7 +175,6 @@ public class GUIToolPanel extends JPanel {
         );
         colorWheel.setPreferredSize(Preferences.BUTTON_SIZE);
         this.add(colorWheel);
-        colorWheel.addActionListener(event -> Preferences.ACTION_TYPE = 11);
         return this;
     }
 
@@ -198,7 +186,6 @@ public class GUIToolPanel extends JPanel {
         );
         picture.setPreferredSize(Preferences.BUTTON_SIZE);
         this.add(picture);
-        picture.addActionListener(event -> Preferences.ACTION_TYPE = 12);
         return this;
     }
 
@@ -207,7 +194,6 @@ public class GUIToolPanel extends JPanel {
                 new ImageIcon(GUIToolPanelOptions.PRINT_TOOL_PATH));
         print.setPreferredSize(Preferences.BUTTON_SIZE);
         this.add(print);
-        print.addActionListener(event -> Preferences.ACTION_TYPE = 13);
         return this;
     }
 
@@ -215,17 +201,15 @@ public class GUIToolPanel extends JPanel {
 
         private static final long serialVersionUID = 584531387732416339L;
 
-        private String family;
+        private String font_family;
+        private float font_size;
 
-        private float fontSize;
-
-        JDialog formatText;
+        private JDialog textFormatter;
 
         private boolean accept = false;
 
-        JComboBox fontFamilyChooser;
-
-        JComboBox fontSizeChooser;
+        private JComboBox fontFamilyChooser;
+        private JComboBox fontSizeChooser;
 
         public FontAndSizeAction() {
             super("font-size");
@@ -233,45 +217,59 @@ public class GUIToolPanel extends JPanel {
 
         public void actionPerformed(ActionEvent event) {
             JTextPane editor = (JTextPane) getEditor(event);
-            int p0 = editor.getSelectionStart();
+            int par = editor.getSelectionStart();
             StyledDocument doc = getStyledDocument(editor);
-            Element paragraph = doc.getCharacterElement(p0);
-            AttributeSet as = paragraph.getAttributes();
+            Element paragraph = doc.getCharacterElement(par);
+            AttributeSet attributes = paragraph.getAttributes();
 
-            family = StyleConstants.getFontFamily(as);
-            fontSize = StyleConstants.getFontSize(as);
+            font_family = StyleConstants.getFontFamily(attributes);
+            font_size = StyleConstants.getFontSize(attributes);
 
-            formatText = new JDialog(new JFrame(), "Font and Size", true);
-            formatText.getContentPane().setLayout(new BorderLayout());
+            textFormatter = new JDialog(
+                    new JFrame(), "Font and Size",
+                    true
+            );
+            textFormatter
+                    .getContentPane()
+                    .setLayout(
+                            new BorderLayout()
+                    );
 
             JPanel choosers = new JPanel();
-            choosers.setLayout(new GridLayout(2, 1));
+            choosers.setLayout(
+                    new GridLayout(2, 1)
+            );
 
-            JPanel fontFamilyPanel = new JPanel();
-            fontFamilyPanel.add(new JLabel("Font"));
+            JPanel fontsPanel = new JPanel();
+            fontsPanel
+                    .add(
+                            new JLabel("Font")
+                    );
 
-            GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-            String[] fontNames = ge.getAvailableFontFamilyNames();
+            GraphicsEnvironment environment
+                    = GraphicsEnvironment.getLocalGraphicsEnvironment();
+            String[] fonts
+                    = environment.getAvailableFontFamilyNames();
 
             fontFamilyChooser = new JComboBox();
-            for (int i = 0; i < fontNames.length; i++) {
-                fontFamilyChooser.addItem(fontNames[i]);
+            for (int i = 0; i < fonts.length; i++) {
+                fontFamilyChooser.addItem(fonts[i]);
             }
-            fontFamilyChooser.setSelectedItem(family);
-            fontFamilyPanel.add(fontFamilyChooser);
-            choosers.add(fontFamilyPanel);
+            fontFamilyChooser.setSelectedItem(font_family);
+            fontsPanel.add(fontFamilyChooser);
+            choosers.add(fontsPanel);
 
             JPanel fontSizePanel = new JPanel();
             fontSizePanel.add(new JLabel("Size"));
             fontSizeChooser = new JComboBox();
             fontSizeChooser.setEditable(true);
-            fontSizeChooser.addItem(new Float(4));
-            fontSizeChooser.addItem(new Float(8));
-            fontSizeChooser.addItem(new Float(12));
-            fontSizeChooser.addItem(new Float(16));
-            fontSizeChooser.addItem(new Float(20));
-            fontSizeChooser.addItem(new Float(24));
-            fontSizeChooser.setSelectedItem(fontSize);
+            fontSizeChooser.addItem(4f);
+            fontSizeChooser.addItem(8f);
+            fontSizeChooser.addItem(12f);
+            fontSizeChooser.addItem(16f);
+            fontSizeChooser.addItem(20f);
+            fontSizeChooser.addItem(24f);
+            fontSizeChooser.setSelectedItem(font_size);
             fontSizePanel.add(fontSizeChooser);
             choosers.add(fontSizePanel);
 
@@ -279,32 +277,32 @@ public class GUIToolPanel extends JPanel {
             ok.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent ae) {
                     accept = true;
-                    formatText.dispose();
-                    family = (String) fontFamilyChooser.getSelectedItem();
-                    fontSize = Float.parseFloat(Objects.requireNonNull(fontSizeChooser.getSelectedItem()).toString());
+                    textFormatter.dispose();
+                    font_family = (String) fontFamilyChooser.getSelectedItem();
+                    font_size = Float.parseFloat(Objects.requireNonNull(fontSizeChooser.getSelectedItem()).toString());
                 }
             });
 
             JButton cancel = new JButton("Cancel");
             cancel.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent ae) {
-                    formatText.dispose();
+                    textFormatter.dispose();
                 }
             });
 
             JPanel buttons = new JPanel();
             buttons.add(ok);
             buttons.add(cancel);
-            formatText.getContentPane().add(choosers, BorderLayout.CENTER);
-            formatText.getContentPane().add(buttons, BorderLayout.SOUTH);
-            formatText.pack();
-            formatText.setVisible(true);
+            textFormatter.getContentPane().add(choosers, BorderLayout.CENTER);
+            textFormatter.getContentPane().add(buttons, BorderLayout.SOUTH);
+            textFormatter.pack();
+            textFormatter.setVisible(true);
 
             MutableAttributeSet attr = null;
             if (accept) {
                 attr = new SimpleAttributeSet();
-                StyleConstants.setFontFamily(attr, family);
-                StyleConstants.setFontSize(attr, (int) fontSize);
+                StyleConstants.setFontFamily(attr, font_family);
+                StyleConstants.setFontSize(attr, (int) font_size);
                 setCharacterAttributes(editor, attr, false);
             }
         }
