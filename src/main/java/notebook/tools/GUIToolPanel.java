@@ -4,6 +4,8 @@ import notebook.Preferences;
 
 import javax.swing.*;
 import javax.swing.text.*;
+import javax.swing.text.html.HTML;
+import javax.swing.text.html.HTMLEditorKit;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.Objects;
@@ -11,7 +13,7 @@ import java.util.Objects;
 public class GUIToolPanel extends JPanel {
 
     private JButton
-            subscript, bold, italic, underline, font, strikeThrough, indent, left, center, right, list, сolorWheel, picture, print;
+            subscript, bold, italic, underline, font, strikeThrough, indent, left, center, right, list, colorWheel, picture, print;
 
     public GUIToolPanel() {
         super();
@@ -42,6 +44,7 @@ public class GUIToolPanel extends JPanel {
         return this;
     }
 
+
     public GUIToolPanel activateToolButtons(){
         subscript.addActionListener(new SubscriptAction());
         bold.addActionListener(new BoldAction());
@@ -50,10 +53,11 @@ public class GUIToolPanel extends JPanel {
         font.addActionListener(new FontAndSizeAction());
         strikeThrough.addActionListener(new StrikeThroughAction());
         indent.addActionListener(new IndentAction());
-
+        left.addActionListener(new LeftAlignmentAction());
         center.addActionListener(new CenterAlignmentAction());
-
-        сolorWheel.addActionListener(new ForegroundAction());
+        right.addActionListener(new RightAlignmentAction());
+        list.addActionListener(ListAction);
+        colorWheel.addActionListener(new ForegroundAction());
         picture.addActionListener(new ImageInsertionAction());
         print.addActionListener(new PrintAction());
         return this;
@@ -175,14 +179,14 @@ public class GUIToolPanel extends JPanel {
     }
 
     private GUIToolPanel bindColorWheelTool(){
-        сolorWheel = new JButton(
+        colorWheel = new JButton(
                 new ImageIcon(
                         GUIToolPanelOptions.COLOR_WHEEL_TOOL_PATH
                 )
         );
-        сolorWheel.setPreferredSize(Preferences.BUTTON_SIZE);
-        this.add(сolorWheel);
-        сolorWheel.addActionListener(event -> Preferences.ACTION_TYPE = 11);
+        colorWheel.setPreferredSize(Preferences.BUTTON_SIZE);
+        this.add(colorWheel);
+        colorWheel.addActionListener(event -> Preferences.ACTION_TYPE = 11);
         return this;
     }
 
@@ -224,11 +228,7 @@ public class GUIToolPanel extends JPanel {
         JComboBox fontSizeChooser;
 
         public FontAndSizeAction() {
-            super("Font and Size");
-        }
-
-        public String toString() {
-            return "Font and Size";
+            super("font-size");
         }
 
         public void actionPerformed(ActionEvent event) {
@@ -307,7 +307,10 @@ public class GUIToolPanel extends JPanel {
                 StyleConstants.setFontSize(attr, (int) fontSize);
                 setCharacterAttributes(editor, attr, false);
             }
+        }
 
+        public String toString() {
+            return "font-size";
         }
     }
 
@@ -530,10 +533,15 @@ public class GUIToolPanel extends JPanel {
         public void actionPerformed(ActionEvent event) {
             JEditorPane editor = getEditor(event);
             if (editor != null) {
-                StyledEditorKit kit = getStyledEditorKit(editor);
-                SimpleAttributeSet sas = new SimpleAttributeSet();
-                StyleConstants.setFirstLineIndent(sas, indent);
-                setCharacterAttributes(editor, sas, false);
+                StyleContext context = new StyleContext();
+                StyledDocument document = (StyledDocument) editor.getDocument();
+                Style style = context.getStyle("default");
+                StyleConstants.setLeftIndent(style, 12);
+                try {
+                    document.insertString(document.getLength(), "        ", style);
+                } catch (BadLocationException exception) {
+                    exception.printStackTrace();
+                }
             }
         }
 
@@ -542,9 +550,30 @@ public class GUIToolPanel extends JPanel {
         }
     }
 
+    class LeftAlignmentAction extends StyledEditorKit.StyledTextAction {
+        private static final long serialVersionUID = -1428340091100055456L;
+
+        public LeftAlignmentAction() {
+            super("left-alignment");
+        }
+
+        public void actionPerformed(ActionEvent event) {
+            JEditorPane editor = getEditor(event);
+            if (editor != null) {
+                StyledEditorKit kit = getStyledEditorKit(editor);
+                SimpleAttributeSet sas = new SimpleAttributeSet();
+                StyleConstants.setAlignment(sas, 5);
+                setCharacterAttributes(editor, sas, false);
+            }
+        }
+
+        public String toString() {
+            return "Left-alignment";
+        }
+    }
+
     class CenterAlignmentAction extends StyledEditorKit.StyledTextAction {
         private static final long serialVersionUID = -1428340091100055456L;
-        private int centrify = 5;
 
         public CenterAlignmentAction() {
             super("center-alignment");
@@ -555,7 +584,7 @@ public class GUIToolPanel extends JPanel {
             if (editor != null) {
                 StyledEditorKit kit = getStyledEditorKit(editor);
                 SimpleAttributeSet sas = new SimpleAttributeSet();
-                StyleConstants.setAlignment(sas, centrify);
+                StyleConstants.setAlignment(sas, 10);
                 setCharacterAttributes(editor, sas, false);
             }
         }
@@ -564,6 +593,30 @@ public class GUIToolPanel extends JPanel {
             return "Center-alignment";
         }
     }
+
+    class RightAlignmentAction extends StyledEditorKit.StyledTextAction {
+        private static final long serialVersionUID = -1428340091100055456L;
+
+        public RightAlignmentAction() {
+            super("right-alignment");
+        }
+
+        public void actionPerformed(ActionEvent event) {
+            JEditorPane editor = getEditor(event);
+            if (editor != null) {
+                StyledEditorKit kit = getStyledEditorKit(editor);
+                SimpleAttributeSet sas = new SimpleAttributeSet();
+                StyleConstants.setAlignment(sas, 15);
+                setCharacterAttributes(editor, sas, false);
+            }
+        }
+
+        public String toString() {
+            return "Right-alignment";
+        }
+    }
+
+    private HTMLEditorKit.InsertHTMLTextAction ListAction = new HTMLEditorKit.InsertHTMLTextAction("Bullet", "<li> </li>", HTML.Tag.BODY, HTML.Tag.UL);
 
     class ImageInsertionAction extends StyledEditorKit.StyledTextAction {
         private static final long serialVersionUID = -1428340091100055456L;
