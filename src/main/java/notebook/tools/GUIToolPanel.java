@@ -560,10 +560,10 @@ public class GUIToolPanel extends JPanel {
         public void actionPerformed(ActionEvent event) {
             JEditorPane editor = getEditor(event);
             if (editor != null) {
-                StyledEditorKit kit = getStyledEditorKit(editor);
-                SimpleAttributeSet sas = new SimpleAttributeSet();
-                StyleConstants.setAlignment(sas, 5);
-                setCharacterAttributes(editor, sas, false);
+                StyledDocument document = (StyledDocument) editor.getDocument();
+                SimpleAttributeSet left = new SimpleAttributeSet();
+                StyleConstants.setAlignment(left, StyleConstants.ALIGN_LEFT);
+                document.setParagraphAttributes(0, document.getLength(), left, false);
             }
         }
 
@@ -582,10 +582,10 @@ public class GUIToolPanel extends JPanel {
         public void actionPerformed(ActionEvent event) {
             JEditorPane editor = getEditor(event);
             if (editor != null) {
-                StyledEditorKit kit = getStyledEditorKit(editor);
-                SimpleAttributeSet sas = new SimpleAttributeSet();
-                StyleConstants.setAlignment(sas, 10);
-                setCharacterAttributes(editor, sas, false);
+                StyledDocument document = (StyledDocument) editor.getDocument();
+                SimpleAttributeSet center = new SimpleAttributeSet();
+                StyleConstants.setAlignment(center, StyleConstants.ALIGN_CENTER);
+                document.setParagraphAttributes(0, document.getLength(), center, false);
             }
         }
 
@@ -604,10 +604,10 @@ public class GUIToolPanel extends JPanel {
         public void actionPerformed(ActionEvent event) {
             JEditorPane editor = getEditor(event);
             if (editor != null) {
-                StyledEditorKit kit = getStyledEditorKit(editor);
-                SimpleAttributeSet sas = new SimpleAttributeSet();
-                StyleConstants.setAlignment(sas, 15);
-                setCharacterAttributes(editor, sas, false);
+                StyledDocument document = (StyledDocument) editor.getDocument();
+                SimpleAttributeSet right = new SimpleAttributeSet();
+                StyleConstants.setAlignment(right, StyleConstants.ALIGN_RIGHT);
+                document.setParagraphAttributes(0, document.getLength(), right, false);
             }
         }
 
