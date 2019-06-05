@@ -25,6 +25,8 @@ class GUIToolPanelOptions {
             "resources/list.png";
     static final String COLOR_WHEEL_TOOL_PATH =
             "resources/color-wheel.png";
+    static final String PICTURE_TOOL_PATH =
+            "resources/picture.png";
     static final String PRINT_TOOL_PATH =
             "resources/printer.png";
 }

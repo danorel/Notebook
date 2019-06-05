@@ -146,7 +146,7 @@ public class Notebook extends JFrame {
                 .getMenuItem("Open")
                 .addActionListener(event -> {
                     JFileChooser fileChooser = new JFileChooser();
-                    if (fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+                    if (fileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
                         File file = fileChooser.getSelectedFile();
                         try {
                             BufferedReader reader = new BufferedReader(new FileReader(file.getPath()));
@@ -179,7 +179,7 @@ public class Notebook extends JFrame {
 
                     writing.requestFocusInWindow();
                     tabs.setSelectedIndex(tabs.getTabCount() - 1);
-                    String title = JOptionPane.showInputDialog("Define the title for the note");
+                    String title = JOptionPane.showInputDialog(null, "Define the title for the note");
                     tabs.setTitleAt(tabs.getSelectedIndex(), (title.substring(0, 1).toUpperCase() + title.substring(1).toLowerCase()));
                 });
         builder.getMenuItem("Delete")
@@ -199,7 +199,7 @@ public class Notebook extends JFrame {
                 });
         builder.getMenuItem("Rename")
                 .addActionListener(event -> {
-                    String title = JOptionPane.showInputDialog("Define the title for the note");
+                    String title = JOptionPane.showInputDialog(null, "Define the title for the note");
                     Objects.requireNonNull(Database.getExistingNotes())
                             .forEach(file -> {
                                 String[] tokens = file.getName().split("[./]");
@@ -219,7 +219,7 @@ public class Notebook extends JFrame {
         builder.getMenuItem("Save")
                 .addActionListener(event -> {
                     JFileChooser chooser = new JFileChooser();
-                    int option = chooser.showSaveDialog(this);
+                    int option = chooser.showSaveDialog(null);
                     if (option == JFileChooser.APPROVE_OPTION) {
                         File file = chooser.getSelectedFile();
                         FileManager.createFile(file.getAbsolutePath());

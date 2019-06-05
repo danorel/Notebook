@@ -11,7 +11,7 @@ import java.util.Objects;
 public class GUIToolPanel extends JPanel {
 
     private JButton
-            subscript, bold, italic, underline, font, strikeThrough, indent, left, center, right, list, сolorWheel, print;
+            subscript, bold, italic, underline, font, strikeThrough, indent, left, center, right, list, сolorWheel, picture, print;
 
     public GUIToolPanel() {
         super();
@@ -36,6 +36,7 @@ public class GUIToolPanel extends JPanel {
                 .bindRightAlignmentTool()
                 .bindListTool()
                 .bindColorWheelTool()
+                .bindPictureTool()
                 .bindPrintTool()
         ;
         return this;
@@ -53,6 +54,8 @@ public class GUIToolPanel extends JPanel {
         center.addActionListener(new CenterAlignmentAction());
 
         сolorWheel.addActionListener(new ForegroundAction());
+        picture.addActionListener(new ImageInsertionAction());
+        print.addActionListener(new PrintAction());
         return this;
     }
 
@@ -107,7 +110,10 @@ public class GUIToolPanel extends JPanel {
 
     private GUIToolPanel bindStrikeThroughTool(){
         strikeThrough = new JButton(
-                new ImageIcon(GUIToolPanelOptions.STRIKE_THROUGH_TOOL_PATH));
+                new ImageIcon(
+                        GUIToolPanelOptions.STRIKE_THROUGH_TOOL_PATH
+                )
+        );
         strikeThrough.setPreferredSize(Preferences.BUTTON_SIZE);
         this.add(strikeThrough);
         strikeThrough.addActionListener(event -> Preferences.ACTION_TYPE = 5);
@@ -134,7 +140,7 @@ public class GUIToolPanel extends JPanel {
         );
         left.setPreferredSize(Preferences.BUTTON_SIZE);
         this.add(left);
-        left.addActionListener(event -> Preferences.ACTION_TYPE = 6);
+        left.addActionListener(event -> Preferences.ACTION_TYPE = 7);
         return this;
     }
 
@@ -143,7 +149,7 @@ public class GUIToolPanel extends JPanel {
                 new ImageIcon(GUIToolPanelOptions.CENTER_ALIGNMENT_PATH));
         center.setPreferredSize(Preferences.BUTTON_SIZE);
         this.add(center);
-        center.addActionListener(event -> Preferences.ACTION_TYPE = 7);
+        center.addActionListener(event -> Preferences.ACTION_TYPE = 8);
         return this;
     }
 
@@ -155,7 +161,7 @@ public class GUIToolPanel extends JPanel {
         );
         right.setPreferredSize(Preferences.BUTTON_SIZE);
         this.add(right);
-        right.addActionListener(event -> Preferences.ACTION_TYPE = 8);
+        right.addActionListener(event -> Preferences.ACTION_TYPE = 9);
         return this;
     }
 
@@ -164,7 +170,7 @@ public class GUIToolPanel extends JPanel {
                 new ImageIcon(GUIToolPanelOptions.LIST_TOOL_PATH));
         list.setPreferredSize(Preferences.BUTTON_SIZE);
         this.add(list);
-        list.addActionListener(event -> Preferences.ACTION_TYPE = 9);
+        list.addActionListener(event -> Preferences.ACTION_TYPE = 10);
         return this;
     }
 
@@ -176,7 +182,19 @@ public class GUIToolPanel extends JPanel {
         );
         сolorWheel.setPreferredSize(Preferences.BUTTON_SIZE);
         this.add(сolorWheel);
-        сolorWheel.addActionListener(event -> Preferences.ACTION_TYPE = 10);
+        сolorWheel.addActionListener(event -> Preferences.ACTION_TYPE = 11);
+        return this;
+    }
+
+    private GUIToolPanel bindPictureTool(){
+        picture = new JButton(
+                new ImageIcon(
+                        GUIToolPanelOptions.PICTURE_TOOL_PATH
+                )
+        );
+        picture.setPreferredSize(Preferences.BUTTON_SIZE);
+        this.add(picture);
+        picture.addActionListener(event -> Preferences.ACTION_TYPE = 12);
         return this;
     }
 
@@ -185,7 +203,7 @@ public class GUIToolPanel extends JPanel {
                 new ImageIcon(GUIToolPanelOptions.PRINT_TOOL_PATH));
         print.setPreferredSize(Preferences.BUTTON_SIZE);
         this.add(print);
-        print.addActionListener(event -> Preferences.ACTION_TYPE = 11);
+        print.addActionListener(event -> Preferences.ACTION_TYPE = 13);
         return this;
     }
 
@@ -489,9 +507,9 @@ public class GUIToolPanel extends JPanel {
             if (editor != null) {
                 StyledEditorKit kit = getStyledEditorKit(editor);
                 MutableAttributeSet attributes = kit.getInputAttributes();
-                boolean underline = !StyleConstants.isStrikeThrough(attributes);
+                boolean strikeThrough = !StyleConstants.isStrikeThrough(attributes);
                 SimpleAttributeSet sas = new SimpleAttributeSet();
-                StyleConstants.setStrikeThrough(sas, underline);
+                StyleConstants.setStrikeThrough(sas, strikeThrough);
                 setCharacterAttributes(editor, sas, false);
             }
         }
@@ -513,7 +531,6 @@ public class GUIToolPanel extends JPanel {
             JEditorPane editor = getEditor(event);
             if (editor != null) {
                 StyledEditorKit kit = getStyledEditorKit(editor);
-                MutableAttributeSet attributes = kit.getInputAttributes();
                 SimpleAttributeSet sas = new SimpleAttributeSet();
                 StyleConstants.setFirstLineIndent(sas, indent);
                 setCharacterAttributes(editor, sas, false);
@@ -530,14 +547,13 @@ public class GUIToolPanel extends JPanel {
         private int centrify = 5;
 
         public CenterAlignmentAction() {
-            super("indent");
+            super("center-alignment");
         }
 
         public void actionPerformed(ActionEvent event) {
             JEditorPane editor = getEditor(event);
             if (editor != null) {
                 StyledEditorKit kit = getStyledEditorKit(editor);
-                MutableAttributeSet attributes = kit.getInputAttributes();
                 SimpleAttributeSet sas = new SimpleAttributeSet();
                 StyleConstants.setAlignment(sas, centrify);
                 setCharacterAttributes(editor, sas, false);
@@ -545,7 +561,75 @@ public class GUIToolPanel extends JPanel {
         }
 
         public String toString() {
-            return "Indent";
+            return "Center-alignment";
+        }
+    }
+
+    class ImageInsertionAction extends StyledEditorKit.StyledTextAction {
+        private static final long serialVersionUID = -1428340091100055456L;
+
+        public ImageInsertionAction() {
+            super("image-insertion");
+        }
+
+        public void actionPerformed(ActionEvent event) {
+            JEditorPane editor = getEditor(event);
+            if (editor != null) {
+                JFileChooser chooser = new JFileChooser();
+                int option = chooser.showOpenDialog(null);
+                StyledDocument doc = (StyledDocument) editor.getDocument();
+                Style style = doc.addStyle(
+                        "image",
+                        null
+                );
+                StyleConstants.setIcon(
+                        style,
+                        new ImageIcon(
+                                chooser
+                                        .getSelectedFile()
+                                        .getAbsolutePath()
+                        )
+                );
+                try {
+                    doc.insertString(doc.getLength() + 1, "\n", style);
+                } catch (BadLocationException exception) {
+                    exception.printStackTrace();
+                }
+            }
+        }
+
+        public String toString() {
+            return "Image-insertion";
+        }
+    }
+
+    class PrintAction extends StyledEditorKit.StyledTextAction {
+        private static final long serialVersionUID = -1428340091100055456L;
+
+        public PrintAction() {
+            super("print");
+        }
+
+        public void actionPerformed(ActionEvent event) {
+            JEditorPane editor = getEditor(event);
+            if (editor != null) {
+                try {
+                    editor.setContentType("text/html");
+                    boolean done = editor.print();
+                    if (done) {
+                        JOptionPane.showMessageDialog(null, "Printing is done");
+                    } else {
+                        JOptionPane.showMessageDialog(null, "Error while printing");
+                    }
+                } catch (Exception pex) {
+                    JOptionPane.showMessageDialog(null, "Error while printing");
+                    pex.printStackTrace();
+                }
+            }
+        }
+
+        public String toString() {
+            return "Print";
         }
     }
 }
